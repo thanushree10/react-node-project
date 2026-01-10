@@ -1,0 +1,302 @@
+/* ================= GLOBAL ================= */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont;
+}
+
+/* ================= PAGE SLIDE ANIMATION ================= */
+@keyframes slideFromLeft {
+  from { transform: translateX(-60px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* ================= SPLASH ================= */
+.splashWrapper {
+  height: 100vh;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* LOGO */
+.splashWrapper img {
+  width: 160px;
+  margin-bottom: 18px;
+}
+
+/* ROTATE ANIMATION */
+.rotateIn {
+  animation: rotateIn 1.5s ease;
+}
+
+@keyframes rotateIn {
+  from { transform: rotate(-360deg) scale(0.6); opacity: 0; }
+  to { transform: rotate(0deg) scale(1); opacity: 1; }
+}
+
+/* TITLE */
+.blinkTitle {
+  font-size: 26px;
+  font-weight: 700;
+  color: #0072ce; /* dark blue from logo */
+  margin-bottom: 6px;
+}
+
+/* COLLEGE NAME */
+.collegeText {
+  font-size: 15px;
+  color: #00b050; /* green from logo */
+  margin-bottom: 18px;
+}
+
+/* ================= BLINKING DOTS ================= */
+.loading-dots {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.loading-dots span {
+  font-size: 30px;
+  font-weight: bold;
+  color:  #00b050; /* blue dots */
+  animation: dotBlink 1.4s infinite both;
+}
+
+.loading-dots span:nth-child(1) { animation-delay: 0s; }
+.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes dotBlink {
+  0% { opacity: 0.2; }
+  20% { opacity: 1; }
+  100% { opacity: 0.2; }
+}
+
+/* TEAM HEADING */
+.teamHeading {
+  font-size: 17px;
+  font-weight: 600;
+  color: #0072ce; /* blue */
+  margin-bottom: 6px;
+}
+
+/* TEAM NAMES */
+.teamNames {
+  font-size: 14px;
+  color: #00b050; /* green */
+}
+
+/* ================= AUTH CONTAINER ================= */
+.auth-container {
+  min-height: 100vh;
+  background: linear-gradient(to bottom right, #e6f0ff, #e6fff0); /* light blue to light green */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* ================= CARD ================= */
+.auth-card {
+  width: 950px;
+  height: 560px;
+  background: #ffffff; /* white card */
+  border-radius: 24px;
+  display: flex;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  animation: slideFromLeft 0.9s ease;
+}
+
+/* ================= LEFT PANEL ================= */
+.auth-left {
+  width: 45%;
+  background: linear-gradient(135deg, #0072ce, #00b050); /* logo colors */
+  padding: 50px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #ffffff;
+}
+
+.auth-left h1 {
+  color: #ffffff;
+  font-size: 26px;
+  margin-bottom: 10px;
+}
+
+.auth-left p {
+  color: #e0f7e0;
+  font-size: 14px;
+  max-width: 260px;
+  margin-bottom: 24px;
+}
+
+.center-logo {
+  width: 110px;
+  animation: logoBlinkMove 1.3s infinite;
+}
+
+@keyframes logoBlinkMove {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* ================= RIGHT PANEL ================= */
+.auth-right {
+  width: 55%;
+  padding: 40px 45px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  background: #f0f8ff; /* very light blue */
+}
+
+.auth-right h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #0072ce; /* blue heading */
+  margin-bottom: 26px;
+}
+
+/* ================= INPUTS ================= */
+.auth-right input {
+  width: 100%;
+  padding: 12px 10px;
+  border: none;
+  border-bottom: 2px solid #ddd;
+  font-size: 14px;
+  outline: none;
+  margin-bottom: 22px;
+}
+
+.auth-right input:focus {
+  border-bottom-color: #0072ce; /* blue focus */
+}
+
+/* ================= OTP ================= */
+.otpRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 26px;
+}
+
+.otpRow input {
+  flex: 1;
+}
+
+.otpBtn {
+  background: #00b050; /* green */
+  color: white;
+  border: none;
+  border-radius: 18px;
+  padding: 8px 18px;
+  cursor: pointer;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* ================= BUTTONS ================= */
+.button-group {
+  display: flex;
+  gap: 20px;
+  margin-top: 10px;
+  background: #e6fff0;
+  padding: 16px;
+  border-radius: 40px;
+}
+
+.primary-btn,
+.outline-btn {
+  flex: 1;
+  height: 54px;
+  border-radius: 32px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+/* Sign Up – Filled Green */
+.primary-btn {
+  background: linear-gradient(135deg, #00b050, #007f3f);
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 8px 22px rgba(0, 176, 80, 0.45);
+}
+
+/* Sign In – Outline Blue */
+.outline-btn {
+  background: #ffffff;
+  border: 2px solid #0072ce;
+  color: #0072ce;
+  box-shadow: 0 8px 22px rgba(0, 114, 206, 0.25);
+}
+
+.primary-btn:hover,
+.outline-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 12px 30px rgba(0, 114, 206, 0.6);
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 900px) {
+  .auth-card {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .auth-left,
+  .auth-right {
+    width: 100%;
+  }
+}
+
+/* Hide scrollbar */
+::-webkit-scrollbar {
+    width: 0px;
+    background: transparent;
+}
+
+/* ================= AUTH STATE LOGIC (NO VISUAL CHANGE) ================= */
+
+/* Ensure card hides sliding panels */
+.auth-card {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Panels base transition (already visually same) */
+.auth-left,
+.auth-right {
+  transition: transform 0.9s ease-in-out;
+}
+
+/* DEFAULT LOGIN STATE */
+.auth-card.login-state .auth-left {
+  transform: translateX(0%);
+}
+
+.auth-card.login-state .auth-right {
+  transform: translateX(0%);
+}
+
+/* SIGNUP STATE (panel swap) */
+.auth-card.signup-state .auth-left {
+  transform: translateX(122%);
+}
+
+.auth-card.signup-state .auth-right {
+  transform: translateX(-83%);
+}
