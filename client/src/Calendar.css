@@ -1,0 +1,126 @@
+.calendar-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 16px;
+  width: 100%;
+  max-width: 320px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+/* Header */
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.calendar-header h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1b5fa7;
+  margin: 0;
+}
+
+/* Navigation */
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-btn {
+  border: none;
+  background: #eef3fb;
+  color: #1b5fa7;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.current-month {
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+}
+
+/* 🔹 CURRENT TIME (ADDED) */
+.current-time {
+  margin: 12px 0;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1b5fa7;
+  letter-spacing: 0.5px;
+}
+
+/* Period selector */
+.period-selector {
+  display: flex;
+  justify-content: space-between;
+  margin: 16px 0;
+}
+
+.period-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: #4a90e2;
+  padding-bottom: 6px;
+  cursor: pointer;
+}
+
+.period-btn.active {
+  border-bottom: 2px solid #4a90e2;
+}
+
+/* Date display */
+.date-display {
+  background: #f6f8fc;
+  border-radius: 12px;
+  padding: 20px 0;
+  text-align: center;
+}
+
+.day-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6c757d;
+}
+
+.date-number {
+  font-size: 48px;
+  font-weight: 700;
+  color: #4a90e2;
+  line-height: 1;
+}
+
+.month-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #495057;
+}
+
+/* Time slots */
+.time-slots {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+
+.time-slot {
+  background: none;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: #495057;
+  cursor: pointer;
+}
+
+.time-slot:hover {
+  color: #4a90e2;
+}

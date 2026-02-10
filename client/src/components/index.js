@@ -413,46 +413,6 @@ app.get("/admin/profile/:id", async (req, res) => {
   res.json(result.rows[0]);
 });
 
-/* ================= ADMIN DATA ENDPOINTS ================= */
-
-/* Get all elections */
-app.get("/admin/elections", async (req, res) => {
-  try {
-    const result = await pool.query("SELECT * FROM elections ORDER BY id DESC");
-    res.json(result.rows);
-  } catch (err) {
-    console.error("Error fetching elections:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-/* Get all candidates */
-app.get("/admin/candidates", async (req, res) => {
-  try {
-    const result = await pool.query(`
-      SELECT c.*, e.title as election_title 
-      FROM candidates c 
-      LEFT JOIN elections e ON c.election_id = e.id 
-      ORDER BY c.id DESC
-    `);
-    res.json(result.rows);
-  } catch (err) {
-    console.error("Error fetching candidates:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-/* Get all voters */
-app.get("/admin/voters", async (req, res) => {
-  try {
-    const result = await pool.query("SELECT id, first_name, last_name, email, voter_id, voted FROM users ORDER BY id DESC");
-    res.json(result.rows);
-  } catch (err) {
-    console.error("Error fetching voters:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
 /* ================= SERVER ================= */
 app.listen(process.env.PORT || 5000, () => {
   console.log("Server running on port 5000");

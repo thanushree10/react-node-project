@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
-import "./App.css";
-import "./WelcomeMessage.css";
-import Dashboard from "./components/Dashboard";
+import "../App.css";
+import "../WelcomeMessage.css";
+import Dashboard1 from "./components/Dashboard1";
 import SplashScreen from "./components/SplashScreen";
 import CandidatesVote from "./components/CandidatesVote";
-
-
+import AdminDashboard from "./components/AdminDashbord";
 const API_URL = "http://localhost:5000";
 
 export default function App() {
@@ -297,11 +296,13 @@ const handleLogin = async () => {
 
   /* ===== DASHBOARD ===== */
 if (showDashboard) {
-  return (
-    <Dashboard
+  const role = localStorage.getItem("role");
+
+  return role === "admin" ? (
+    <AdminDashboard
       userName={userName}
-      userGender={userGender}
       onLogout={() => {
+        localStorage.clear();
         setShowSplash(true);
         setShowSplash2Only(true);
         setShowDashboard(false);
@@ -309,9 +310,22 @@ if (showDashboard) {
         setUserGender("");
       }}
     />
-    
+  ) : (
+    <Dashboard
+      userName={userName}
+      userGender={userGender}
+      onLogout={() => {
+        localStorage.clear();
+        setShowSplash(true);
+        setShowSplash2Only(true);
+        setShowDashboard(false);
+        setUserName("");
+        setUserGender("");
+      }}
+    />
   );
 }
+
 
 
   /* ===== AUTH SCREENS ===== */
@@ -383,27 +397,17 @@ if (showDashboard) {
                 />
                 <span className="email-suffix">@gmail.com</span>
               </div>
-        {registerRole === "user" && (
+              {registerRole === "user" && (
   <div className="row">
-
-    {/* Department Dropdown */}
-    <select
+    <input
+      placeholder="Department"
       value={registerDepartment}
-      onChange={(e) => setRegisterDepartment(e.target.value)}
-    >
-      <option value="">Select Department</option>
-      <option value="CS">CS</option>
-      <option value="IS">IS</option>
-      <option value="EC">EC</option>
-      <option value="EEE">EEE</option>
-      <option value="IC">IC</option>
-      <option value="CP">CP</option>
-    </select>
+      onChange={e => setRegisterDepartment(e.target.value)}
+    />
 
-    {/* Semester Dropdown */}
     <select
       value={registerSemester}
-      onChange={(e) => setRegisterSemester(e.target.value)}
+      onChange={e => setRegisterSemester(e.target.value)}
     >
       <option value="">Select Semester</option>
       <option value="1">1</option>
@@ -413,9 +417,9 @@ if (showDashboard) {
       <option value="5">5</option>
       <option value="6">6</option>
     </select>
-
   </div>
 )}
+
 
               <div className="row">
                 <input 

@@ -1,0 +1,489 @@
+* {
+  box-sizing: border-box;
+  font-family: "Inter", sans-serif;
+}
+
+body {
+  margin: 0;
+  background: #f4f6fb;
+}
+
+/* ================= LAYOUT ================= */
+.dashboard-root {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ================= SIDEBAR ================= */
+.sidebar {
+  width: 240px;
+  background: #ffffff;
+  padding: 20px;
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.08);
+  border-radius: 0 16px 16px 0;
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-size: 26px;
+  font-weight: 700;
+  color: #4f6cff;
+}
+
+.user-box {
+  text-align: center;
+  margin: 30px 0;
+}
+
+.avatar {
+  width: 70px;
+  height: 70px;
+  background: #edf1ff;
+  border-radius: 50%;
+  margin: auto;
+  font-size: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4f6cff;
+}
+
+.dashboard-root {
+  display: flex;
+  min-height: 100vh;
+  overflow: hidden; /* prevent overall scroll */
+}
+
+/* ================= SIDEBAR ================= */
+.sidebar {
+  width: 240px;
+  background: #ffffff;
+  padding: 20px;
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.08);
+  border-radius: 0 16px 16px 0;
+
+  position: sticky; /* keeps sidebar in place */
+  top: 0;           /* stick to top */
+  height: 100vh;    /* full height of viewport */
+  overflow-y: auto; /* scroll only if sidebar content overflows */
+}
+
+/* ================= MAIN ================= */
+.main {
+  flex: 1;
+  padding: 20px 30px;
+  height: 100vh;
+  overflow-y: auto; /* scrollable main content */
+}
+
+/* ================= TOP HEADER ================= */
+.top-header {
+  display: flex;
+  align-items: center;
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.hamburger {
+  width: 26px;
+  cursor: pointer;
+}
+
+.hamburger span {
+  display: block;
+  height: 3px;
+  background: #4f6cff;
+  margin: 4px 0;
+  border-radius: 4px;
+}
+
+/* ===== IDENTITY BUTTON ===== */
+.top-profile-icon {
+  margin-left: auto;
+  background: #edf1ff;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #4f6cff;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(79,108,255,0.15);
+}
+
+/* ===== PROFILE PANEL ===== */
+.profile-panel {
+  position: absolute;
+  top: 52px;
+  right: 0;
+  width: 320px;
+  background: #ffffff;
+  padding: 16px;
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.18);
+  z-index: 1000;
+}
+
+.profile-panel label {
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.profile-panel input {
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #cfd6e0;
+}
+
+.update-btn {
+  margin-top: 8px;
+  padding: 8px;
+  border: none;
+  border-radius: 8px;
+  background: #4f6cff;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ================= GRID ================= */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.card.full {
+  grid-column: span 2;
+}
+
+/* ================= WELCOME ================= */
+.welcome-greeting {
+  font-size: 26px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.welcome-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* ================= ONGOING ELECTION ================= */
+.election-item {
+  display: flex;
+  gap: 24px;              /* slightly reduced for balance */
+  margin-top: 16px;
+  margin-bottom: 28px;
+  align-items: center;    /* aligns image & text nicely */
+}
+
+.election-image {
+  width: 120px;
+  border-radius: 14px;
+  flex-shrink: 0;
+}
+
+/* 🔹 NEW: content wrapper spacing */
+.election-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;              /* 👈 THIS fixes line spacing */
+}
+
+.election-content h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.election-content p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* 🔹 Button spacing */
+.vote-btn {
+  margin-top: 8px;
+  padding: 10px 22px;
+  background: linear-gradient(135deg, #6a7cff, #4f6cff);
+  color: white;
+  border-radius: 10px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  width: fit-content;
+}
+
+
+/* ================= LIVE RESULTS ================= */
+.voting-results {
+  grid-column: 1 / 2;
+}
+
+.graph-body {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+}
+
+.y-axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 180px;
+  font-size: 12px;
+  color: #8a94b8;
+}
+
+.graph-content {
+  display: flex;
+  gap: 18px;
+  align-items: flex-end;
+}
+
+.bar-container {
+  width: 36px;
+  height: 160px;
+  background: #edf1ff;
+  border-radius: 12px;
+  position: relative;
+}
+
+.bar-fill {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background: linear-gradient(180deg, #6a7cff, #4f6cff);
+  border-radius: 12px;
+}
+
+.bar-value {
+  position: absolute;
+  top: -20px;
+  font-size: 12px;
+  color: #4f6cff;
+  width: 100%;
+  text-align: center;
+}
+
+/* ================= VOTING PROCESS ================= */
+.voter-stats {
+  grid-column: 2 / 3;
+}
+
+.stat-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.stat-circle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 3px solid #4f6cff;
+  color: #4f6cff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+/* ================= ELECTION ACTIVITIES ================= */
+.activities {
+  list-style: none;
+  padding: 0;
+}
+
+.activities li {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #edf1ff;
+}
+
+.activities .ongoing { color: #4f6cff; font-weight: 600; }
+.activities .pending { color: #ff9800; font-weight: 600; }
+.activities .done { color: #4caf50; font-weight: 600; }
+
+/* ================= DARK MODE ================= */
+.dark {
+  background: #1f2a44;
+  color: white;
+}
+
+.dark .card,
+.dark .sidebar,
+.dark .profile-panel {
+  background: #2b3754;
+}
+/* ================= SETTINGS UI FIX ================= */
+
+/* Section container */
+.settings-section {
+  margin-top: 18px;
+  border-radius: 14px;
+  background: #f8faff;
+  padding: 14px 16px;
+}
+
+/* Section header */
+.settings-section h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f2a44;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Content inside settings */
+.settings-section ul.activities {
+  margin-top: 12px;
+  padding: 0;
+}
+
+/* Each setting row */
+.settings-section ul.activities li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid #e4e9ff;
+  font-size: 14px;
+}
+
+/* Remove border from last item */
+.settings-section ul.activities li:last-child {
+  border-bottom: none;
+}
+
+/* Inputs & selects */
+.settings-section input[type="text"],
+.settings-section input[type="email"],
+.settings-section select {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #cfd6e0;
+  font-size: 13px;
+}
+
+/* Checkbox & radio alignment */
+.settings-section label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+/* Buttons inside settings */
+.settings-section .vote-btn {
+  padding: 6px 14px;
+  font-size: 13px;
+  border-radius: 8px;
+}
+
+/* Guide list inside settings */
+.settings-section ul ul {
+  margin-top: 10px;
+  padding-left: 18px;
+}
+
+.settings-section ul ul li {
+  font-size: 13px;
+  color: #374151;
+}
+
+/* ================= DARK MODE SETTINGS ================= */
+.dark .settings-section {
+  background: #2b3754;
+}
+
+.dark .settings-section h3 {
+  color: #ffffff;
+}
+
+.dark .settings-section ul.activities li {
+  border-color: #3b4a6b;
+  color: #e5e7eb;
+}
+
+.dark .settings-section input,
+.dark .settings-section select {
+  background: #1f2a44;
+  color: white;
+  border-color: #44537a;
+}
+/* ================= TOP RIGHT PROFILE TABS ================= */
+
+.top-right-profile {
+  position: fixed;
+  top: 16px;
+  right: 24px;
+  display: flex;
+  gap: 8px;
+  z-index: 1000;
+}
+
+/* Individual buttons */
+.profile-tab {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid #d6d9e0;
+  background: #ffffff;
+  color: #333;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+}
+
+/* Hover */
+.profile-tab:hover {
+  background: #f2f5ff;
+  border-color: #5b7cff;
+  color: #3b5bfd;
+}
+
+/* Active tab */
+.profile-tab.active {
+  background: #5b7cff;
+  color: #ffffff;
+  border-color: #5b7cff;
+}
+/* ================= GREETING SECTION ================= */
+.dashboard-greeting {
+  margin-top: 40px; /* push down from the top */
+  margin-left: 20px; /* move slightly to the right */
+}
+
+.dashboard-greeting h2 {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.dashboard-greeting p {
+  font-size: 16px;
+  color: #6b7280;
+  margin-top: 6px;
+}
