@@ -1,171 +1,154 @@
-// CandidatesVote.js
-import React, { useState } from "react";
+import axios from "axios";
+import { useEffect, useState } from "react";
 import "./CandidatesVote.css";
 
-// 🔹 Candidate data (6 candidates)
-const candidates = [
-  {
-    id: 1,
-    label: "Candidate A",
-    name: "Rahul Sharma",
-    symbol: "🦁",
-    confidence: 8.6,
-    reasons: [
-      { title: "Leadership", percent: 42 },
-      { title: "Experience", percent: 31 }
-    ]
-  },
-  {
-    id: 2,
-    label: "Candidate B",
-    name: "Anita Verma",
-    symbol: "🌸",
-    confidence: 8.2,
-    reasons: [
-      { title: "Public Service", percent: 45 },
-      { title: "Transparency", percent: 29 }
-    ]
-  },
-  {
-    id: 3,
-    label: "Candidate C",
-    name: "Suresh Kumar",
-    symbol: "🌞",
-    confidence: 7.9,
-    reasons: [
-      { title: "Innovation", percent: 38 },
-      { title: "Youth Support", percent: 34 }
-    ]
-  },
-  {
-    id: 4,
-    label: "Candidate D",
-    name: "Neha Singh",
-    symbol: "🌳",
-    confidence: 8.4,
-    reasons: [
-      { title: "Environmental Focus", percent: 41 },
-      { title: "Community Work", percent: 33 }
-    ]
-  },
-  {
-    id: 5,
-    label: "Candidate E",
-    name: "Amit Patel",
-    symbol: "🚲",
-    confidence: 7.7,
-    reasons: [
-      { title: "Infrastructure", percent: 39 },
-      { title: "Economic Growth", percent: 28 }
-    ]
-  },
-  {
-    id: 6,
-    label: "Candidate F",
-    name: "Pooja Nair",
-    symbol: "✋",
-    confidence: 8.8,
-    reasons: [
-      { title: "Women Empowerment", percent: 46 },
-      { title: "Education Reform", percent: 32 }
-    ]
-  }
-];
+const API = "http://localhost:5000";
 
-// 🔥 receive onVote from Dashboard
-const CandidatesVote = ({ onVote }) => {
+const CandidatesVote = ({ onBack, onVoted, isAdmin = false }) => {
+  const [candidates, setCandidates] = useState([]);
+  const [election, setElection] = useState(null);
+  const [hasVoted, setHasVoted] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  // 🔒 ONE PERSON – ONE VOTE
-  const [hasVoted, setHasVoted] = useState(
-    localStorage.getItem("hasVoted") === "true"
-  );
+  const userId = localStorage.getItem("userId");
 
-  // ➕ ADDED: voted candidate & time
-  const [votedCandidate, setVotedCandidate] = useState(
-    localStorage.getItem("votedCandidate") || ""
-  );
-  const [votedTime, setVotedTime] = useState(
-    localStorage.getItem("votedTime") || ""
-  );
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        setError("");
 
-  const handleVote = (index, name) => {
-    if (hasVoted) {
-      alert("⚠️ You have already voted. You cannot vote again.");
+        if (!isAdmin && !userId) {
+          setError("User not logged in");
+          return;
+        }
+
+        const electionRes = await axios.get(
+          isAdmin
+            ? `${API}/api/elections/latest`
+            : `${API}/api/elections/ongoing`
+        );
+
+        let electionData = electionRes.data;
+        if (Array.isArray(electionData)) {
+          electionData = electionData.length > 0 ? electionData[0] : null;
+        }
+
+        if (!electionData || !electionData.id) {
+          setError("No election available");
+          return;
+        }
+
+        setElection(electionData);
+
+        if (!isAdmin) {
+          const statusRes = await axios.get(
+            `${API}/api/vote/status/${userId}/${electionData.id}`
+          );
+
+          if (statusRes.data?.voted) {
+            setHasVoted(true);
+            if (onVoted) {
+              onVoted({
+                candidate: statusRes.data.candidateName,
+                time: new Date(statusRes.data.votedAt).toLocaleString()
+              });
+            }
+          }
+        }
+
+        const candidatesRes = await axios.get(
+          `${API}/api/candidates/${electionData.id}`
+        );
+        setCandidates(Array.isArray(candidatesRes.data) ? candidatesRes.data : []);
+      } catch (err) {
+        console.error("Load error:", err);
+        setError(err.response?.data?.message || "Failed to load election data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [userId, isAdmin, onVoted]);
+
+  const handleVote = async (candidateId) => {
+    if (!election) {
+      alert("No active election found");
       return;
     }
 
-   if (onVote) {
-  const voteDetails = {
-    candidate: name,
-    time: new Date().toLocaleString()
+    try {
+      const res = await axios.post(`${API}/api/vote`, {
+        userId,
+        electionId: election.id,
+        candidateId
+      });
+
+      setHasVoted(true);
+
+      if (onVoted) {
+        onVoted({
+          candidate: res.data.candidateName,
+          time: new Date(res.data.votedAt).toLocaleString()
+        });
+      }
+    } catch (err) {
+      if (err.response?.status === 409) {
+        alert("You already voted");
+      } else {
+        alert("Vote failed. Please try again.");
+      }
+    }
   };
-  onVote(index, voteDetails); // send info to Dashboard
-}
 
+  if (loading) return <p className="loading">Loading election...</p>;
 
-    const time = new Date().toLocaleString();
-
-    setHasVoted(true);
-    setVotedCandidate(name);
-    setVotedTime(time);
-
-    localStorage.setItem("hasVoted", "true");
-    localStorage.setItem("votedCandidate", name);
-    localStorage.setItem("votedTime", time);
-
-    alert(`✅ Your vote has been submitted for ${name}`);
-  };
+  if (error) {
+    return (
+      <div className="vote-page">
+        <p className="error">{error}</p>
+        <button className="back-btn" onClick={onBack}>Back</button>
+      </div>
+    );
+  }
 
   return (
     <div className="vote-page">
-      <h1>🗳️ Cast Your Vote</h1>
-      <p>Select one candidate carefully</p>
+      <h2>{hasVoted ? "🗳️ You have already voted" : "Cast Your Vote"}</h2>
 
-      {/* ➕ ADDED: show vote info AFTER vote */}
-      {hasVoted && (
-        <div className="vote-info">
-          <p>✅ You voted for: <b>{votedCandidate}</b></p>
-          <p>⏰ Time of vote: {votedTime}</p>
-        </div>
+      {(!hasVoted || isAdmin) && (
+        <>
+          <h3>{election?.title}</h3>
+
+          {candidates.length === 0 ? (
+            <p>No candidates available</p>
+          ) : (
+            <div className="candidates-grid">
+              {candidates.map((c) => (
+                <div key={c.id} className="candidate-card">
+                  <div className="candidate-header">
+                    <span className="candidate-label">{c.label}</span>
+                  </div>
+                  <div className="symbol">{c.symbol}</div>
+                  <h3>{c.name}</h3>
+                  {!isAdmin && (
+                    <button
+                      className="vote-btn"
+                      onClick={() => handleVote(c.id)}
+                    >
+                      Vote
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </>
       )}
 
-      <div className="candidates-grid">
-        {candidates.map((candidate, index) => (
-          <div className="candidate-card" key={candidate.id}>
-
-            <div className="candidate-header">
-              <span className="symbol">{candidate.symbol}</span>
-              <span className="candidate-label">{candidate.label}</span>
-            </div>
-
-            <h3>{candidate.name}</h3>
-
-            <p className="confidence">
-              ⭐ Avg Confidence: <b>{candidate.confidence} / 10</b>
-            </p>
-
-            <div className="reasons">
-              <p>📌 Top Reasons:</p>
-              <ul>
-                {candidate.reasons.map((reason, i) => (
-                  <li key={i}>
-                    {reason.title} ({reason.percent}%)
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <button
-              className="vote-btn"
-              disabled={hasVoted}
-              onClick={() => handleVote(index, candidate.name)}
-            >
-              {hasVoted ? "Voted" : "Vote"}
-            </button>
-
-          </div>
-        ))}
-      </div>
+      <button className="back-btn" onClick={onBack}>Back to Dashboard</button>
     </div>
   );
 };

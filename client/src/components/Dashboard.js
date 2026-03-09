@@ -10,8 +10,8 @@ const Dashboard = ({ userName = "User", onVoteNow, onLogout }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const userId = localStorage.getItem("userId");
   const role = localStorage.getItem("role"); // "user" | "admin"
-
-
+  const [hasVoted, setHasVoted] = useState(false);
+const [votedInfo, setVotedInfo] = useState(null);
 
   // 🔹 ADDED: Profile & Security panel state
   const [showProfilePanel, setShowProfilePanel] = useState(false);
@@ -31,16 +31,12 @@ const Dashboard = ({ userName = "User", onVoteNow, onLogout }) => {
   const [showGuide, setShowGuide] = useState(false);
   const [securityUpdateOpen, setSecurityUpdateOpen] = useState(false);
   const [showVote, setShowVote] = useState(false);
-  // 🔹 LIVE RESULTS STATE (ADD HERE)
-const [liveVotes, setLiveVotes] = useState([40, 35, 25, 20, 15, 10]);
+  const [ongoingElection, setOngoingElection] = useState(null);
+  const [results, setResults] = useState([]);
 
-
-
-
-  // 🔹 ADDED: Profile identity states (FIX)
-  const [editableName, setUsersName] = useState(userName);
+    // 🔹 ADDED: Profile identity states (FIX)
+  const [editableName, setUserName] = useState(userName);
   const [email, setEmail] = useState("");
-
 
 // 🔹 ADDED: Identity & Security panel toggle states
 const [showIdentityPanel, setShowIdentityPanel] = useState(false);
@@ -49,18 +45,111 @@ const [showSecurityPanel, setShowSecurityPanel] = useState(false);
 // 🔹 Security states
 const [currentPassword, setCurrentPassword] = useState("");
 const [newPassword, setNewPassword] = useState("");
-// 🔹 ADDED: Vote status (ONE PERSON – ONE VOTE)
-const [hasVoted, setHasVoted] = useState(
-  localStorage.getItem("hasVoted") === "true"
-);
-// 🔹 ADDED: Voted info (time + candidate)
-const [votedInfo, setVotedInfo] = useState(() => {
-  const saved = localStorage.getItem("votedInfo");
-  return saved ? JSON.parse(saved) : null;
-});
+
+const [winner, setWinner] = useState(null);
+const [showWinnerBox, setShowWinnerBox] = useState(false);
 
 
+useEffect(() => {
+  const fetchVoteStatus = async () => {
+    try {
+      const electionRes = await fetch(
+        "http://localhost:5000/api/elections/ongoing"
+      );
+      const election = await electionRes.json();
 
+      const res = await fetch(
+        `http://localhost:5000/api/vote/status/${userId}/${election.id}`
+      );
+      const data = await res.json();
+
+      if (data.voted) {
+        setHasVoted(true);
+        setVotedInfo({
+          candidate: data.candidateName,
+          time: data.votedAt
+        });
+      }
+    } catch (err) {
+      console.error("Vote status fetch failed");
+    }
+  };
+
+  if (userId) fetchVoteStatus();
+}, [userId]);
+ 
+const loadResults = async () => {
+  try {
+    // 1️⃣ First check ongoing election
+    const ongoingRes = await fetch(
+      "http://localhost:5000/api/elections/ongoing"
+    );
+    const ongoing = await ongoingRes.json();
+
+    // 2️⃣ If ongoing exists → show live results
+    if (ongoing && ongoing.id) {
+      setOngoingElection(ongoing);
+      setShowWinnerBox(false);
+
+      const resultsRes = await fetch(
+        `http://localhost:5000/api/elections/${ongoing.id}/live-results`
+      );
+      const data = await resultsRes.json();
+
+      if (Array.isArray(data)) {
+        setResults(data);
+      }
+
+      return;
+    }
+
+    // 3️⃣ If no ongoing → check latest published
+    const publishedRes = await fetch(
+      "http://localhost:5000/api/elections/latest-published"
+    );
+    const published = await publishedRes.json();
+
+    if (published && published.id) {
+      setOngoingElection(published);
+
+      const resultsRes = await fetch(
+        `http://localhost:5000/api/elections/${published.id}/live-results`
+      );
+      const data = await resultsRes.json();
+
+      if (Array.isArray(data)) {
+        setResults(data);
+
+        // 🏆 Find winner
+        const topCandidate = data.reduce((prev, current) =>
+          prev.vote_count > current.vote_count ? prev : current
+        );
+
+        setWinner(topCandidate);
+        setShowWinnerBox(true);
+
+        // ⏳ Hide after 24 hours
+        const publishTime = new Date(published.published_at);
+        const now = new Date();
+        const diffHours = (now - publishTime) / (1000 * 60 * 60);
+
+        if (diffHours >= 24) {
+          setShowWinnerBox(false);
+        }
+      }
+    }
+
+  } catch (err) {
+    console.error("Results fetch error:", err);
+  }
+};
+
+
+useEffect(() => {
+  loadResults();
+  const interval = setInterval(loadResults, 3000);
+  return () => clearInterval(interval);
+}, []);
   const handleMenuClick = (menu, guideline = false) => {
     setActiveMenu(menu);
     setShowGuidelines(guideline);
@@ -164,31 +253,15 @@ const handleUpdateIdentity = async () => {
     .catch(err => alert(err.message));
 };
 
-// 🔹 Increase vote for a candidate (ADD HERE)
-const increaseVote = (index, candidateName) => {
-  if (hasVoted) return;
-
-  setLiveVotes((prev) => {
-    const updated = [...prev];
-    updated[index] = Math.min(updated[index] + 5, 100);
-    return updated;
-  });
-
-  const voteDetails = {
-    candidate: candidateName,
-    time: new Date().toLocaleString()
-  };
-
-  setHasVoted(true);
-  setVotedInfo(voteDetails);
-
-  localStorage.setItem("hasVoted", "true");
-  localStorage.setItem("votedInfo", JSON.stringify(voteDetails));
-};
 
 
+
+
+    
   return (
-    <div className={`dashboard-root ${theme}`}>
+ 
+    // ✅ FULL PAGE CANDIDATE VOTE
+  <div className={`dashboard-root ${theme}`}>
       {/* ================= SIDEBAR ================= */}
       {sidebarOpen && (
         <aside className="sidebar">
@@ -221,7 +294,12 @@ const increaseVote = (index, candidateName) => {
 
             <div
               className={`menu-item ${activeMenu === "vote" ? "active" : ""}`}
-              onClick={() => handleMenuClick("vote")}
+              onClick={() => {
+  setActiveMenu("vote");
+  setShowVote(true);
+  setSidebarOpen(false);
+}}
+
             >
               🗳️ Vote
             </div>
@@ -302,7 +380,7 @@ const increaseVote = (index, candidateName) => {
       <input
         type="text"
         value={editableName}
-        onChange={(e) => setEditableName(e.target.value)}
+        onChange={(e) => setUserName(e.target.value)}
       />
     </label>
 
@@ -698,60 +776,89 @@ const increaseVote = (index, candidateName) => {
             <section className="grid full-width">
   <div className="card">
     <h2>Ongoing Elections</h2>
-    <div className="election-item">
-      <img
-        src="https://img.freepik.com/free-vector/election-concept-illustration_114360-8276.jpg?w=300"
-        alt="Election"
-        className="election-image"
-      />
-      <div>
-        <h3>General Election 2026</h3>
-        <p>Vote for your preferred candidate</p>
-        {/* 🔹 Updated: handle Vote Now locally */}
-        {hasVoted && votedInfo ? (
-  <div className="voted-info">
-    <p>✅ <b>You have voted</b></p>
-    <p>🗳️ Candidate: <b>{votedInfo.candidate}</b></p>
-    <p>⏰ Time: <b>{votedInfo.time}</b></p>
-  </div>
-) : (
-  <button
-    className="vote-btn"
-    onClick={() => setShowVote(true)}
-  >
-    Vote Now
-  </button>
-)}
 
-
-
+    {showWinnerBox && winner ? (
+      <div className="election-item">
+        <h3 style={{ color: "green" }}>
+          🏆 {winner.name} Won the Election!
+        </h3>
+        <p style={{ fontWeight: "bold" }}>
+          🎉 Congratulations 🎉
+        </p>
       </div>
-    </div>
+
+    ) : showVote ? (
+
+      <CandidatesVote
+        electionId={ongoingElection?.id}
+        onBack={() => {
+          setShowVote(false);
+          setActiveMenu("dashboard");
+          setSidebarOpen(true);
+        }}
+      />
+
+    ) : ongoingElection?.status === "ongoing" ? (
+
+      <div className="election-item">
+        <img
+          src="https://img.freepik.com/free-vector/election-concept-illustration_114360-8276.jpg?w=300"
+          alt="Election"
+          className="election-image"
+        />
+        <div>
+          <h3>{ongoingElection.title}</h3>
+          <p>Vote for your preferred candidate</p>
+
+          {hasVoted ? (
+            <div className="voted-info">
+              <p>✅ <b>You have voted</b></p>
+              <p>🗳️ Candidate: <b>{votedInfo?.candidate}</b></p>
+              <p>⏰ Time: <b>{votedInfo?.time}</b></p>
+            </div>
+          ) : (
+            <button
+              className="vote-btn"
+              onClick={() => {
+                setActiveMenu("vote");
+                setShowVote(true);
+                setSidebarOpen(false);
+              }}
+            >
+              Vote Now
+            </button>
+          )}
+        </div>
+      </div>
+
+    ) : (
+
+      <div className="election-item">
+        <p>No active election</p>
+      </div>
+
+    )}
+
   </div>
 
-  {/* 🔹 Render CandidatesVote when showVote is true */}
-  {showVote && (
-    <div className="card full">
-      <CandidatesVote onVote={(index, candidateName) => increaseVote(index, candidateName)} />
+  <div className="card calendar">
+    <Calendar />
+  </div>
+
+  <div className="card voting-results">
+    <h2>
+      {ongoingElection?.status === "published"
+        ? "Final Results"
+        : "Live Results"}
+    </h2>
+
+    {ongoingElection?.status === "published" && (
+      <p style={{ color: "green", fontWeight: "bold" }}>
+        🏁 Election Completed
+      </p>
+    )}
 
 
-      <button
-        className="vote-btn"
-        style={{ marginTop: "15px" }}
-        onClick={() => setShowVote(false)}
-      >
-        Back to Dashboard
-      </button>
-    </div>
-  )}
-
-
-              <div className="card calendar">
-                <Calendar />
-              </div>
-
-              <div className="card voting-results">
-                <h2>Live Results</h2>
                 
   <div className="graph-body">
     <div className="y-axis">
@@ -763,20 +870,28 @@ const increaseVote = (index, candidateName) => {
     </div>
 
     <div className="graph-content">
-      {liveVotes.map((value, index) => (
-        <div key={index}>
-          <div className="bar-container">
-            <div
-              className="bar-fill"
-              style={{ height: `${value}%` }}
-            />
-            <span className="bar-value">{value}%</span>
-          </div>
+   {results.map((c) => (
+  <div key={c.id}>
+    <div className="bar-container">
+      <div
+        className="bar-fill"
+        style={{
+  height: `${
+    results.length > 0
+      ? (c.vote_count /
+          Math.max(...results.map(r => r.vote_count || 1))) *
+        200
+      : 0
+  }px`
+}}
 
-          <div className="x-label">Candidate {index + 1}</div>
+      />
+      <span className="bar-value">{c.vote_count}</span>
+    </div>
+    <div className="x-label">{c.name}</div>
+  </div>
+))}
 
-        </div>
-      ))}
     </div>
   </div>
 </div>
@@ -801,7 +916,7 @@ const increaseVote = (index, candidateName) => {
                 <h3>Election Activities</h3>
                 <ul className="activities">
                   <li>
-                    <span>President Student Council</span>
+                    <span>Student Council Election 2026</span>
                     <span className="ongoing">Ongoing</span>
                   </li>
                   <li>

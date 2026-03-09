@@ -6,6 +6,8 @@ import "./WelcomeMessage.css";
 import Dashboard from "./components/Dashboard";
 import SplashScreen from "./components/SplashScreen";
 import CandidatesVote from "./components/CandidatesVote";
+import AdminDashboard from "./components/AdminDashboard";
+
 
 
 const API_URL = "http://localhost:5000";
@@ -58,6 +60,8 @@ export default function App() {
   const [registerPassword, setRegisterPassword] = useState("");
   const [registerOtp, setRegisterOtp] = useState("");
   const [registerRole, setRegisterRole] = useState("user"); // user | admin
+  const [loginRole, setLoginRole] = useState("user"); // "user" or "admin"
+
 
 
   /* ===== SPLASH FLOW ===== */
@@ -128,11 +132,28 @@ export default function App() {
     setOtpError("Please enter your date of birth");
     return;
   }
-
   if (!registerVoterId) {
-    setOtpError("Please enter your Voter ID");
+  setOtpError(registerRole === "admin" ? "Please select your Admin Number" : "Please enter your Voter ID");
+  return;
+}
+
+// Optional: extra check for admin
+if (registerRole === "admin") {
+  const allowedAdmins = ["ADM1001", "ADM1002", "ADM1003", "ADM1004"];
+  if (!allowedAdmins.includes(registerVoterId)) {
+    setOtpError("Invalid Admin Number selected");
     return;
   }
+}
+// Inside handleRegister, after checking registerName, registerEmail, registerOtp
+if (registerRole === "admin") {
+  const allowedAdmins = ["ADM1001", "ADM1002", "ADM1003", "ADM1004"];
+  if (!allowedAdmins.includes(registerVoterId)) {
+    setRegisterError("Invalid Admin Number entered");
+    return;
+  }
+}
+
 
   if (!registerPassword) {
     setOtpError("Please enter a password");
@@ -162,6 +183,7 @@ export default function App() {
   /* ===== LOGIN ===== */
 const handleLogin = async () => {
   setLoginError("");
+
   if (!loginVoterId) {
     setLoginError("Please enter Voter ID");
     return;
@@ -172,14 +194,18 @@ const handleLogin = async () => {
   }
 
   try {
-    const res = await fetch(`${API_URL}/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        voter_id: loginVoterId,
-        password: loginPassword
-      })
-    });
+    // NEW: use loginRole to pick endpoint
+const res = await fetch(
+  loginRole === "admin" ? `${API_URL}/admin/login` : `${API_URL}/login`,
+  {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      voter_id: loginVoterId,
+      password: loginPassword
+    })
+  }
+);
 
     const data = await res.json();
 
@@ -187,6 +213,7 @@ const handleLogin = async () => {
       setLoginError(data.message || "Login failed");
       return;
     }
+
 
     // Handle both user and admin responses
     let userData = data.user || data.admin || data.data || data;
@@ -245,18 +272,18 @@ const handleLogin = async () => {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(
-      registerRole === "admin"
-        ? {
-            first_name: registerName,
-            last_name: registerLastName,
-            email: `${registerEmail}@gmail.com`,
-            voter_id: registerVoterId,
-            age: registerAge,
-            dob: registerDob,
-            password: registerPassword,
-            otp: registerOtp
-          }
-        : {
+  registerRole === "admin"
+    ? {
+        first_name: registerName,
+        last_name: registerLastName,
+        email: `${registerEmail}@gmail.com`,
+        admin_number: registerVoterId, // <- changed
+        age: registerAge,
+        dob: registerDob,
+        password: registerPassword,
+        otp: registerOtp
+      }
+    : {
             first_name: registerName,
             last_name: registerLastName,
             email: `${registerEmail}@gmail.com`,
@@ -275,13 +302,25 @@ const handleLogin = async () => {
 
 
       const data = await res.json();
-      if (res.ok) {
-        setUserName(registerName);
-        setRegisterSuccess("Registration successful!");
-        setTimeout(() => {
-          setShowDashboard(true);
-          setRegisterSuccess("");
-        }, 1500);
+    if (res.ok) {
+  setUserName(registerName);
+
+  // ✅ SAVE ROLE AFTER REGISTER
+  localStorage.setItem("role", registerRole);
+
+  // Optional: save userId if backend sends it
+  if (data.user) {
+    localStorage.setItem("userId", data.user.id || data.user.voter_id);
+  }
+
+  setRegisterSuccess("Registration successful!");
+
+  setTimeout(() => {
+    setShowDashboard(true);
+    setRegisterSuccess("");
+  }, 1500);
+
+
       } else {
         setRegisterError(data.message);
       }
@@ -297,11 +336,13 @@ const handleLogin = async () => {
 
   /* ===== DASHBOARD ===== */
 if (showDashboard) {
-  return (
-    <Dashboard
+  const role = localStorage.getItem("role");
+
+  return role === "admin" ? (
+    <AdminDashboard
       userName={userName}
-      userGender={userGender}
       onLogout={() => {
+        localStorage.clear();
         setShowSplash(true);
         setShowSplash2Only(true);
         setShowDashboard(false);
@@ -309,9 +350,22 @@ if (showDashboard) {
         setUserGender("");
       }}
     />
-    
+  ) : (
+    <Dashboard
+      userName={userName}
+      userGender={userGender}
+      onLogout={() => {
+        localStorage.clear();
+        setShowSplash(true);
+        setShowSplash2Only(true);
+        setShowDashboard(false);
+        setUserName("");
+        setUserGender("");
+      }}
+    />
   );
 }
+
 
 
   /* ===== AUTH SCREENS ===== */
@@ -353,11 +407,47 @@ if (showDashboard) {
     </div>
   )}
 
+
           {!isSignup ? (
             <>
-              <input placeholder="Voter ID" value={loginVoterId} onChange={e => setLoginVoterId(e.target.value)} />
-              <input type="password" placeholder="Password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} />
+              {/* ROLE SELECTOR */}
+<div className="role-selector">
+  <label>
+    <input
+      type="radio"
+      name="loginRole"
+      value="user"
+      checked={loginRole === "user"}
+      onChange={() => setLoginRole("user")}
+    />
+    User
+  </label>
+  <label>
+    <input
+      type="radio"
+      name="loginRole"
+      value="admin"
+      checked={loginRole === "admin"}
+      onChange={() => setLoginRole("admin")}
+    />
+    Admin
+  </label>
+</div>
 
+{/* LOGIN INPUTS */}
+<input
+  placeholder={loginRole === "admin" ? "Admin Number" : "Voter ID"}
+  value={loginVoterId}
+  onChange={e => setLoginVoterId(e.target.value)}
+/>
+<input
+  type="password"
+  placeholder="Password"
+  value={loginPassword}
+  onChange={e => setLoginPassword(e.target.value)}
+/>
+
+              
               <div className="forgot-password-link">
                 <span onClick={() => setShowForgotPassword(true)}>Forgot Password?</span>
               </div>
@@ -383,27 +473,17 @@ if (showDashboard) {
                 />
                 <span className="email-suffix">@gmail.com</span>
               </div>
-        {registerRole === "user" && (
+              {registerRole === "user" && (
   <div className="row">
-
-    {/* Department Dropdown */}
-    <select
+    <input
+      placeholder="Department"
       value={registerDepartment}
-      onChange={(e) => setRegisterDepartment(e.target.value)}
-    >
-      <option value="">Select Department</option>
-      <option value="CS">CS</option>
-      <option value="IS">IS</option>
-      <option value="EC">EC</option>
-      <option value="EEE">EEE</option>
-      <option value="IC">IC</option>
-      <option value="CP">CP</option>
-    </select>
+      onChange={e => setRegisterDepartment(e.target.value)}
+    />
 
-    {/* Semester Dropdown */}
     <select
       value={registerSemester}
-      onChange={(e) => setRegisterSemester(e.target.value)}
+      onChange={e => setRegisterSemester(e.target.value)}
     >
       <option value="">Select Semester</option>
       <option value="1">1</option>
@@ -413,9 +493,9 @@ if (showDashboard) {
       <option value="5">5</option>
       <option value="6">6</option>
     </select>
-
   </div>
 )}
+
 
               <div className="row">
                 <input 
@@ -468,7 +548,7 @@ if (showDashboard) {
 
 <div className="row">
   <input
-    placeholder="Voter ID"
+    placeholder={registerRole === "admin" ? "Admin Number" : "Voter ID"}
     value={registerVoterId}
     onChange={e => setRegisterVoterId(e.target.value)}
   />
@@ -650,14 +730,16 @@ if (showDashboard) {
                     return;
                   }
                   try {
-                    const res = await fetch(`${API_URL}/reset-password`, {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ 
-                      email: forgotEmail,
-                      password: newPassword 
-                      })
-                    });
+                 const res = await fetch(`${API_URL}/forgot-password/reset`, {
+  method: "PUT",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    email: forgotEmail,
+    otp: forgotOtp,
+    newPassword: newPassword
+  })
+});
+
                     const data = await res.json();
                     if (res.ok) {
                       setForgotPasswordSuccess("Password updated successfully!");

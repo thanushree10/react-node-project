@@ -487,3 +487,19 @@ body {
   color: #6b7280;
   margin-top: 6px;
 }
+.vote-fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #f4f7fb;
+  z-index: 9999;
+  padding: 30px;
+  overflow-y: auto;
+}
+
+.back-btn {
+  width: 100%;
+  margin-top: 20px;
+}
